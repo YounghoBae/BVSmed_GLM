@@ -46,9 +46,9 @@ result = matrix(NA, 40, 1)
 rownames(result) = seq(0, 0.975, 0.025)
 colnames(result) = "post_gamma"
 for(i in 1:40){
-  result[i,1] = quantile(data1[[i]], 0.3)
+  result[i,1] = quantile(data1[[i]], 0.5)
 }
 
-# rownames are eta, post_gamma is corresponding 30th post_gamma
+# rownames are eta, post_gamma is corresponding 50th post_gamma
 result
 
