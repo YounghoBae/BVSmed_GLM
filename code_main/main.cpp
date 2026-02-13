@@ -184,7 +184,7 @@ Rcpp::List cmaVS_dep (VectorXd treat, MatrixXd M, MatrixXd X, VectorXd y,
                       double h0, double c0, double s0, double t0, double k0,
                       double V_tau, double V_delta, double V_lambda, double V_s, double V_t, double V_k,
                       double mu0, double mu1, double nu0, double sigmaSq0,
-                      VectorXd update_prop, double init, double eta, double epsilon, double L){
+                      VectorXd update_prop, double init, double eta, double epsilon, double L, int link){
   
   std::cout << "Initial Setting Start" << "\n";
   
@@ -251,7 +251,7 @@ Rcpp::List cmaVS_dep (VectorXd treat, MatrixXd M, MatrixXd X, VectorXd y,
     
     // update delta, omega
     if(Rcpp::runif(1)(0) < update_prop(1)){
-      eff_coeff = update_delta2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X, epsilon, L);
+      eff_coeff = update_delta2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X, epsilon, L, link);
     }
     delta = eff_coeff.col(2);
     omega = eff_coeff.col(3);
@@ -268,17 +268,17 @@ Rcpp::List cmaVS_dep (VectorXd treat, MatrixXd M, MatrixXd X, VectorXd y,
     
     // update alpha0
     if(Rcpp::runif(1)(0) < update_prop(4)){
-      alpha0 = update_alpha0(y, M, delta, X, alpha0, alpha, alpha_p, treat, s0, V_s);
+      alpha0 = update_alpha0(y, M, delta, X, alpha0, alpha, alpha_p, treat, s0, V_s, link);
     }
     
     // update alpha
     if(Rcpp::runif(1)(0) < update_prop(5)){
-      alpha = update_alpha(y, M, delta, X, alpha0, alpha, alpha_p, treat, t0, V_t);
+      alpha = update_alpha(y, M, delta, X, alpha0, alpha, alpha_p, treat, t0, V_t, link);
     }
     
     // update alpha_p
     if(Rcpp::runif(1)(0) < update_prop(6)){
-      alpha_p = update_alpha_p(y, M, delta, X, alpha0, alpha, alpha_p, treat, k0, V_k);
+      alpha_p = update_alpha_p(y, M, delta, X, alpha0, alpha, alpha_p, treat, k0, V_k, link);
     }
     
     // update lambda
