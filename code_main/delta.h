@@ -12,14 +12,14 @@ using Eigen::VectorXd;
 // [[Rcpp::depends(RcppEigen)]]
 
 // Library Functions
-MatrixXd add_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X);
-MatrixXd delete_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X);
-MatrixXd swap_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X);
+MatrixXd add_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X, int link);
+MatrixXd delete_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X, int link);
+MatrixXd swap_step2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X, int link);
 double U(const VectorXd& delta, const VectorXd& y, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p, const VectorXd& psi);
 VectorXd grad_U(const VectorXd& delta, const VectorXd& y, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p, const VectorXd& psi);
 MatrixXd HMC(MatrixXd eff_coeff, const VectorXd& y, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p, const VectorXd& psi, double epsilon, double L);
   
-MatrixXd update_delta2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X, double epsilon, double L);
+MatrixXd update_delta2(MatrixXd eff_coeff, const double V_delta, const VectorXd& psi, const double theta_omega, const VectorXd& y, const VectorXd& alpha0, const MatrixXd& M, const VectorXd& alpha, const double alpha_p, const VectorXd& treat, const MatrixXd& X, double epsilon, double L, int link);
 
 // Functions Define
 // 1-1. add update
@@ -33,7 +33,8 @@ MatrixXd add_step2(MatrixXd eff_coeff,
                    const VectorXd& alpha,
                    const double alpha_p,
                    const VectorXd& treat,
-                   const MatrixXd& X){
+                   const MatrixXd& X,
+                   int link){
   int q = M.cols();
   
   VectorXd gamma = eff_coeff.col(1);
@@ -57,8 +58,15 @@ MatrixXd add_step2(MatrixXd eff_coeff,
   double log_proposal_ratio = log_proposal_part1 + log((q-g_omega)/(g_omega+1.0));
   
   // add likelihood ratio
-  double log_like1 = loglike_binary(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
-  double log_like2 = loglike_binary(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  double log_like1, log_like2;
+  if(link == 1){
+    log_like1 = loglike_logit(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_logit(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }else{
+    log_like1 = loglike_poisson(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_poisson(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }
+
   
   double log_likelihood_ratio = log_like1 - log_like2;
   
@@ -84,7 +92,8 @@ MatrixXd delete_step2(MatrixXd eff_coeff,
                       const VectorXd& alpha,
                       const double alpha_p,
                       const VectorXd& treat,
-                      const MatrixXd& X){
+                      const MatrixXd& X,
+                      int link){
   int q = M.cols();
   
   VectorXd gamma = eff_coeff.col(1);
@@ -108,8 +117,14 @@ MatrixXd delete_step2(MatrixXd eff_coeff,
   double log_proposal_ratio = log_proposal_part1 + log(g_omega/(q-g_omega+1.0));
   
   // delete likelihood ratio
-  double log_like1 = loglike_binary(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
-  double log_like2 = loglike_binary(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  double log_like1, log_like2;
+  if(link == 1){
+    log_like1 = loglike_logit(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_logit(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }else{
+    log_like1 = loglike_poisson(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_poisson(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }
   
   double log_likelihood_ratio = log_like1 - log_like2;
   
@@ -135,7 +150,8 @@ MatrixXd swap_step2(MatrixXd eff_coeff,
                     const VectorXd& alpha,
                     const double alpha_p,
                     const VectorXd& treat,
-                    const MatrixXd& X){
+                    const MatrixXd& X, 
+                    int link){
   
   VectorXd gamma = eff_coeff.col(1);
   VectorXd delta = eff_coeff.col(2);
@@ -162,8 +178,14 @@ MatrixXd swap_step2(MatrixXd eff_coeff,
   double log_proposal_ratio = num_part_proposal - den_part_proposal;
   
   // swap likelihood ratio
-  double log_like1 = loglike_binary(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
-  double log_like2 = loglike_binary(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  double log_like1, log_like2;
+  if(link == 1){
+    log_like1 = loglike_logit(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_logit(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }else{
+    log_like1 = loglike_poisson(y, delta_star, M, X, treat, alpha0, alpha, alpha_p);
+    log_like2 = loglike_poisson(y, delta,      M, X, treat, alpha0, alpha, alpha_p);
+  }
   
   double log_likelihood_ratio = log_like1 - log_like2;
   
@@ -251,7 +273,7 @@ MatrixXd HMC(MatrixXd eff_coeff,
              double L){
   VectorXd delta = eff_coeff.col(2);
   VectorXd omega = eff_coeff.col(3);
-  VectorXd update_idx = nonzero_index(omega);
+  VectorXi update_idx = nonzero_index(omega);
   int update_size = update_idx.rows();
   
   if(update_size > 0){
@@ -329,7 +351,8 @@ MatrixXd update_delta2(MatrixXd eff_coeff,
                       const VectorXd& treat,
                       const MatrixXd& X,
                       double epsilon,
-                      double L){
+                      double L,
+                      int link){
   
   VectorXd gamma = eff_coeff.col(1);
   VectorXd delta = eff_coeff.col(2);
@@ -357,13 +380,13 @@ MatrixXd update_delta2(MatrixXd eff_coeff,
     
     switch(move_2){
     case 1: // add step
-      result1 = add_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X);
+      result1 = add_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X, link);
       break;
     case 2: // delete step
-      result1 = delete_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X);
+      result1 = delete_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X, link);
       break;
     case 3: // swap step
-      result1 = swap_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X);
+      result1 = swap_step2(eff_coeff, V_delta, psi, theta_omega, y, alpha0, M, alpha, alpha_p, treat, X, link);
       break;
     }
   }
