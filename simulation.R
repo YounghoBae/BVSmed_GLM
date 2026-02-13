@@ -29,6 +29,6 @@ outcome = cmaVS_dep(treat=treat, M=M, X=X, y=y,
                     h0=100, c0=100, s0=100, t0=100, k0=100,
                     V_tau=0.01, V_delta=0.01, V_lambda=0.01, V_s = 0.01, V_t = 0.01, V_k = 0.01,
                     mu0=0, mu1=0, nu0=6, sigmaSq0=1/3,
-                    update_prop=c(1,1,1,1,1,1,1,1,1,1), init = 0.3, eta=result[1,temp], epsilon = 0.005, L = 100)
+                    update_prop=c(1,1,1,1,1,1,1,1,1,1), init = 0.3, eta=result[1,temp], epsilon = 0.005, L = 100, link = 1)
 
 
