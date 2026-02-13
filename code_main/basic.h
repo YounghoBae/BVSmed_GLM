@@ -28,7 +28,8 @@ int random_nonzero_index(const VectorXd& x);
 int ran_sample(const int x);
 VectorXd ran_sample_vec(const int x);
 
-double loglike_binary(const VectorXd& y, const VectorXd& delta, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p);
+double loglike_logit(const VectorXd& y, const VectorXd& delta, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p);
+double loglike_poisson(const VectorXd& y, const VectorXd& delta, const MatrixXd& M, const MatrixXd& X, const VectorXd& treat, const VectorXd& alpha0, const VectorXd& alpha, double alpha_p);
 
 // Functions Define
 // 1. Sampling from multivariate normal dist.
@@ -222,7 +223,7 @@ VectorXd ran_sample_vec(const int x){
 }
 
 // 10. log likelihood for binary outcome
-double loglike_binary(const VectorXd& y,
+double loglike_logit(const VectorXd& y,
                       const VectorXd& delta, 
                       const MatrixXd& M, 
                       const MatrixXd& X, 
@@ -236,7 +237,7 @@ double loglike_binary(const VectorXd& y,
   
   VectorXd result(n);
   for(int i=0; i<n; i++){
-    result(i) = -y(i) * log(1 + exp(-A(i))) + (y(i) - 1) * log(1 + exp(A(i)));
+    result(i) = y(i) * A(i) - log(1 + exp(A(i)));
   }
   
   double result2 = result.sum();
@@ -244,6 +245,28 @@ double loglike_binary(const VectorXd& y,
   return result2;
 }
 
+// 11. log likelihood for binary outcome
+double loglike_poisson(const VectorXd& y,
+                       const VectorXd& delta, 
+                       const MatrixXd& M, 
+                       const MatrixXd& X, 
+                       const VectorXd& treat, 
+                       const VectorXd& alpha0, 
+                       const VectorXd& alpha, 
+                       double alpha_p){
+  int n = y.rows();
+  
+  VectorXd A = alpha0 + M * delta + X * alpha + alpha_p * treat;
+  
+  VectorXd result(n);
+  for(int i=0; i<n; i++){
+    result(i) = y(i) * A(i) - exp(A(i));
+  }
+  
+  double result2 = result.sum();
+  
+  return result2;
+}
 
 
 #endif
