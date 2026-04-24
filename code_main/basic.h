@@ -38,7 +38,14 @@ MatrixXd sampleMultivariateNormal(const VectorXd& mean, const MatrixXd& cov, int
   Eigen::LLT<MatrixXd> cholesky(cov);
   
   if (cholesky.info() == Eigen::Success) {
-    MatrixXd Z = MatrixXd::Random(n, n_samples);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> d(0.0, 1.0);
+
+    MatrixXd Z(n, n_samples);
+    for (int i = 0; i < n; ++i)
+      for (int j = 0; j < n_samples; ++j)
+        Z(i, j) = d(gen);
     return (mean.replicate(1, n_samples) + cholesky.matrixL() * Z).transpose();
   } else {
     std::cerr << "Cholesky decomposition failed!" << std::endl;
